@@ -1,10 +1,13 @@
 package com.bibliotheque.bibliotheque_api.controller;
 
+import com.bibliotheque.bibliotheque_api.dto.response.LivreResponse;
 import com.bibliotheque.bibliotheque_api.entity.Livre;
+import com.bibliotheque.bibliotheque_api.mapper.LivreMapper;
 import com.bibliotheque.bibliotheque_api.service.LivreService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/livres")
@@ -17,22 +20,28 @@ public class LivreController {
     }
 
     @GetMapping
-    public List<Livre> listerTousLesLivres(){
-        return livreService.listerTousLesLivres();
+    public List<LivreResponse> listerTousLesLivres(){
+        List<Livre> listLivres = livreService.listerTousLesLivres();
+        return listLivres.stream()
+                .map(LivreMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
-    public Livre trouverLivre(@PathVariable Long id){
-        return livreService.trouverParId(id);
+    public LivreResponse trouverLivre(@PathVariable Long id){
+        Livre livre = livreService.trouverParId(id);
+        return LivreMapper.toResponse(livre);
     }
     @PostMapping
-    public Livre creerLivre(@RequestBody Livre livre){
-        return livreService.creerLivre(livre);
+    public LivreResponse creerLivre(@RequestBody Livre livre){
+        Livre livreCreer = livreService.creerLivre(livre);
+        return LivreMapper.toResponse(livreCreer);
     }
 
     @PutMapping("/{id}")
-    public Livre mettreAJour(@PathVariable Long id, @RequestBody Livre livreModifie){
-        return livreService.mettreAJour(id, livreModifie);
+    public LivreResponse mettreAJour(@PathVariable Long id, @RequestBody Livre livreModifie){
+        Livre livre = livreService.mettreAJour(id, livreModifie);
+        return LivreMapper.toResponse(livre);
     }
 
     @DeleteMapping("/{id}")
