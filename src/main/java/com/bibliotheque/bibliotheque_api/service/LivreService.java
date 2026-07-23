@@ -1,5 +1,6 @@
 package com.bibliotheque.bibliotheque_api.service;
 
+import com.bibliotheque.bibliotheque_api.entity.Auteur;
 import com.bibliotheque.bibliotheque_api.entity.Emprunt;
 import com.bibliotheque.bibliotheque_api.entity.Livre;
 import com.bibliotheque.bibliotheque_api.enums.StatutEmprunt;
@@ -33,7 +34,8 @@ public class LivreService {
 
     public Livre creerLivre(Livre livre){
         Long auteurId = livre.getAuteur().getId();
-        auteurRepository.findById(auteurId).orElseThrow(()-> new RuntimeException("Auteur introuvable"));
+        Auteur auteurComplet = auteurRepository.findById(auteurId).orElseThrow(()-> new RuntimeException("Auteur introuvable"));
+        livre.setAuteur(auteurComplet);
         return livreRepository.save(livre);
     }
 
