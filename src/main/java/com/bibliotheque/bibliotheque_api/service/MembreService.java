@@ -3,6 +3,8 @@ package com.bibliotheque.bibliotheque_api.service;
 import com.bibliotheque.bibliotheque_api.entity.Emprunt;
 import com.bibliotheque.bibliotheque_api.entity.Membre;
 import com.bibliotheque.bibliotheque_api.enums.StatutEmprunt;
+import com.bibliotheque.bibliotheque_api.exception.MembrePossedeEmpruntsException;
+import com.bibliotheque.bibliotheque_api.exception.RessourceNotFoundException;
 import com.bibliotheque.bibliotheque_api.repository.EmpruntRepository;
 import com.bibliotheque.bibliotheque_api.repository.MembreRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,7 +30,7 @@ public class MembreService {
     }
 
     public Membre trouverParId(Long id){
-        return membreRepository.findById(id).orElseThrow(() -> new RuntimeException("Membre introuvable"));
+        return membreRepository.findById(id).orElseThrow(() -> new RessourceNotFoundException("Membre", id));
     }
 
     public Membre creerMembre(Membre membre){
@@ -58,7 +60,7 @@ public class MembreService {
 
         List<Emprunt> listLivreEmprunter = empruntRepository.findByMembreIdAndStatut(id, StatutEmprunt.EN_COURS);
         if (!listLivreEmprunter.isEmpty()){
-            throw new RuntimeException("Livre encore emprunté");
+            throw new MembrePossedeEmpruntsException("Livre encore emprunté");
         }
         membreRepository.delete(membre);
     }
