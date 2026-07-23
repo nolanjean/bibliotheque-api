@@ -27,6 +27,18 @@ public class EmpruntService {
         this.livreRepository = livreRepository;
     }
 
+    public List<Emprunt> listerTousLesEmprunts() {
+        return empruntRepository.findAll();
+    }
+
+    public Emprunt trouverParId(Long id) {
+        return empruntRepository.findById(id).orElseThrow(() -> new RuntimeException("Emprunt introuvable"));
+    }
+
+    public List<Emprunt> listerEmpruntsDuMembre(Long membreId) {
+        return empruntRepository.findByMembreId(membreId);
+    }
+
     public void emprunterLivre(Long membreId, Long livreId){
         Membre membre = membreRepository.findById(membreId).orElseThrow();
         List<Emprunt> empruntsEnCours = empruntRepository.findByMembreIdAndStatut(membreId, StatutEmprunt.EN_COURS);

@@ -9,4 +9,5 @@ import java.util.List;
 public interface EmpruntRepository extends JpaRepository<Emprunt, Long> {
     List<Emprunt> findByMembreIdAndStatut(Long membreId, StatutEmprunt statut);
     List<Emprunt> findByLivreIdAndStatut(Long livreId, StatutEmprunt statut);
+    List<Emprunt> findByMembreId(Long membreId);
 }
