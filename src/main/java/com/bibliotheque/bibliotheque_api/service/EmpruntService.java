@@ -4,6 +4,10 @@ import com.bibliotheque.bibliotheque_api.entity.Emprunt;
 import com.bibliotheque.bibliotheque_api.entity.Livre;
 import com.bibliotheque.bibliotheque_api.entity.Membre;
 import com.bibliotheque.bibliotheque_api.enums.StatutEmprunt;
+import com.bibliotheque.bibliotheque_api.exception.EmpruntDejaRenduException;
+import com.bibliotheque.bibliotheque_api.exception.LimiteEmpruntException;
+import com.bibliotheque.bibliotheque_api.exception.LivreIndisponibleException;
+import com.bibliotheque.bibliotheque_api.exception.RessourceNotFoundException;
 import com.bibliotheque.bibliotheque_api.repository.EmpruntRepository;
 import com.bibliotheque.bibliotheque_api.repository.LivreRepository;
 import com.bibliotheque.bibliotheque_api.repository.MembreRepository;
@@ -32,7 +36,7 @@ public class EmpruntService {
     }
 
     public Emprunt trouverParId(Long id) {
-        return empruntRepository.findById(id).orElseThrow(() -> new RuntimeException("Emprunt introuvable"));
+        return empruntRepository.findById(id).orElseThrow(() -> new RessourceNotFoundException("Emprunt", id));
     }
 
     public List<Emprunt> listerEmpruntsDuMembre(Long membreId) {
@@ -40,15 +44,15 @@ public class EmpruntService {
     }
 
     public void emprunterLivre(Long membreId, Long livreId){
-        Membre membre = membreRepository.findById(membreId).orElseThrow();
+        Membre membre = membreRepository.findById(membreId).orElseThrow(() -> new RessourceNotFoundException("Membre", membreId));
         List<Emprunt> empruntsEnCours = empruntRepository.findByMembreIdAndStatut(membreId, StatutEmprunt.EN_COURS);
         if (empruntsEnCours.size() >= 3 ){
-            throw new RuntimeException("Le membre a atteint la limite de 3 emprunts");
+            throw new LimiteEmpruntException("Le membre a atteint la limite de 3 emprunts");
         }
-        Livre livre = livreRepository.findById(livreId).orElseThrow();
+        Livre livre = livreRepository.findById(livreId).orElseThrow(() -> new RessourceNotFoundException("Livre", livreId));
         List<Emprunt> empruntLivreEnCours = empruntRepository.findByLivreIdAndStatut(livreId, StatutEmprunt.EN_COURS);
         if (empruntLivreEnCours.size() >= livre.getNombreExemplaires() ){
-            throw new RuntimeException("Plus de livre disponible");
+            throw new LivreIndisponibleException("Plus de livre disponible");
         }
         Emprunt emprunt = new Emprunt();
         emprunt.setMembre(membre);
@@ -60,9 +64,9 @@ public class EmpruntService {
     }
 
     public void rendreLivre(Long empruntId){
-        Emprunt emprunt = empruntRepository.findById(empruntId).orElseThrow();
+        Emprunt emprunt = empruntRepository.findById(empruntId).orElseThrow(() -> new RessourceNotFoundException("Emprunt", empruntId));
         if (emprunt.getStatut() == StatutEmprunt.RENDU){
-            throw new RuntimeException("Ce livre a déjà été rendu");
+            throw new EmpruntDejaRenduException("Ce livre a déjà été rendu");
         }
         emprunt.setStatut(StatutEmprunt.RENDU);
         empruntRepository.save(emprunt);
