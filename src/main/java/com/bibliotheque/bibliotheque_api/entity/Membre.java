@@ -1,6 +1,7 @@
 package com.bibliotheque.bibliotheque_api.entity;
 
 import com.bibliotheque.bibliotheque_api.enums.Role;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -37,5 +38,6 @@ public class Membre {
     private Role role;
 
     @OneToMany(mappedBy = "membre")
+    @JsonIgnore
     private List<Emprunt> emprunts;
 }
