@@ -4,6 +4,8 @@ import com.bibliotheque.bibliotheque_api.entity.Auteur;
 import com.bibliotheque.bibliotheque_api.entity.Emprunt;
 import com.bibliotheque.bibliotheque_api.entity.Livre;
 import com.bibliotheque.bibliotheque_api.enums.StatutEmprunt;
+import com.bibliotheque.bibliotheque_api.exception.LivreNonRenduException;
+import com.bibliotheque.bibliotheque_api.exception.RessourceNotFoundException;
 import com.bibliotheque.bibliotheque_api.repository.AuteurRepository;
 import com.bibliotheque.bibliotheque_api.repository.EmpruntRepository;
 import com.bibliotheque.bibliotheque_api.repository.LivreRepository;
@@ -29,12 +31,12 @@ public class LivreService {
     }
 
     public Livre trouverParId(Long id){
-        return livreRepository.findById(id).orElseThrow(()-> new RuntimeException("Livre introuvable"));
+        return livreRepository.findById(id).orElseThrow(() -> new RessourceNotFoundException("Livre", id));
     }
 
     public Livre creerLivre(Livre livre){
         Long auteurId = livre.getAuteur().getId();
-        Auteur auteurComplet = auteurRepository.findById(auteurId).orElseThrow(()-> new RuntimeException("Auteur introuvable"));
+        Auteur auteurComplet = auteurRepository.findById(auteurId).orElseThrow(()-> new RessourceNotFoundException("Auteur", auteurId));
         livre.setAuteur(auteurComplet);
         return livreRepository.save(livre);
     }
@@ -63,7 +65,7 @@ public class LivreService {
 
         List<Emprunt> listLivreEmprunter = empruntRepository.findByLivreIdAndStatut(id, StatutEmprunt.EN_COURS);
         if (!listLivreEmprunter.isEmpty()){
-            throw new RuntimeException("Livre encore non rendu");
+            throw new LivreNonRenduException("Livre encore non rendu");
         }
         livreRepository.delete(livre);
     }
