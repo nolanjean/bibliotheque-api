@@ -43,7 +43,7 @@ public class EmpruntService {
         return empruntRepository.findByMembreId(membreId);
     }
 
-    public void emprunterLivre(Long membreId, Long livreId){
+    public Emprunt emprunterLivre(Long membreId, Long livreId){
         Membre membre = membreRepository.findById(membreId).orElseThrow(() -> new RessourceNotFoundException("Membre", membreId));
         List<Emprunt> empruntsEnCours = empruntRepository.findByMembreIdAndStatut(membreId, StatutEmprunt.EN_COURS);
         if (empruntsEnCours.size() >= 3 ){
@@ -60,15 +60,15 @@ public class EmpruntService {
         emprunt.setDateEmprunt(LocalDate.now());
         emprunt.setDateRetourPrevue(LocalDate.now().plusDays(14));
         emprunt.setStatut(StatutEmprunt.EN_COURS);
-        empruntRepository.save(emprunt);
+        return empruntRepository.save(emprunt);
     }
 
-    public void rendreLivre(Long empruntId){
+    public Emprunt rendreLivre(Long empruntId){
         Emprunt emprunt = empruntRepository.findById(empruntId).orElseThrow(() -> new RessourceNotFoundException("Emprunt", empruntId));
         if (emprunt.getStatut() == StatutEmprunt.RENDU){
             throw new EmpruntDejaRenduException("Ce livre a déjà été rendu");
         }
         emprunt.setStatut(StatutEmprunt.RENDU);
-        empruntRepository.save(emprunt);
+        return empruntRepository.save(emprunt);
     }
 }
