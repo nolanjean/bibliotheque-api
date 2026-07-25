@@ -1,5 +1,6 @@
 package com.bibliotheque.bibliotheque_api.service;
 
+import com.bibliotheque.bibliotheque_api.dto.request.LivreCreateRequest;
 import com.bibliotheque.bibliotheque_api.entity.Auteur;
 import com.bibliotheque.bibliotheque_api.entity.Emprunt;
 import com.bibliotheque.bibliotheque_api.entity.Livre;
@@ -34,10 +35,13 @@ public class LivreService {
         return livreRepository.findById(id).orElseThrow(() -> new RessourceNotFoundException("Livre", id));
     }
 
-    public Livre creerLivre(Livre livre){
-        Long auteurId = livre.getAuteur().getId();
-        Auteur auteurComplet = auteurRepository.findById(auteurId).orElseThrow(()-> new RessourceNotFoundException("Auteur", auteurId));
-        livre.setAuteur(auteurComplet);
+    public Livre creerLivre(LivreCreateRequest request){
+        Auteur auteur = auteurRepository.findById(request.auteurId()).orElseThrow(() -> new RessourceNotFoundException("Auteur", request.auteurId()));
+        Livre livre = new Livre();
+        livre.setTitre(request.titre());
+        livre.setIsbn(request.isbn());
+        livre.setNombreExemplaires(request.nombreExemplaires());
+        livre.setAuteur(auteur);
         return livreRepository.save(livre);
     }
 

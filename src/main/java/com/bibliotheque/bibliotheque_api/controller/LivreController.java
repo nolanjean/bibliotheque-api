@@ -1,5 +1,6 @@
 package com.bibliotheque.bibliotheque_api.controller;
 
+import com.bibliotheque.bibliotheque_api.dto.request.LivreCreateRequest;
 import com.bibliotheque.bibliotheque_api.dto.response.LivreResponse;
 import com.bibliotheque.bibliotheque_api.entity.Livre;
 import com.bibliotheque.bibliotheque_api.mapper.LivreMapper;
@@ -33,8 +34,8 @@ public class LivreController {
         return LivreMapper.toResponse(livre);
     }
     @PostMapping
-    public LivreResponse creerLivre(@RequestBody Livre livre){
-        Livre livreCreer = livreService.creerLivre(livre);
+    public LivreResponse creerLivre(@RequestBody LivreCreateRequest request){
+        Livre livreCreer = livreService.creerLivre(request);
         return LivreMapper.toResponse(livreCreer);
     }
 
