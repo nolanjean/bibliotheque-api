@@ -1,5 +1,6 @@
 package com.bibliotheque.bibliotheque_api.mapper;
 
+import com.bibliotheque.bibliotheque_api.dto.request.AuteurCreateRequest;
 import com.bibliotheque.bibliotheque_api.dto.response.AuteurResponse;
 import com.bibliotheque.bibliotheque_api.entity.Auteur;
 import com.bibliotheque.bibliotheque_api.entity.Livre;
@@ -14,5 +15,11 @@ public class AuteurMapper {
                 auteur.getNom(),
                 auteur.getLivres().stream().map(Livre::getTitre).collect(Collectors.toList())
         );
+    }
+
+    public static Auteur toEntity(AuteurCreateRequest request){
+        Auteur auteur = new Auteur();
+        auteur.setNom(request.nom());
+        return auteur;
     }
 }

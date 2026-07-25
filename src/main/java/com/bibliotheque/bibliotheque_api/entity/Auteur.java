@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -27,5 +28,5 @@ public class Auteur {
 
     @OneToMany(mappedBy = "auteur")
     @JsonIgnore
-    private List<Livre> livres;
+    private List<Livre> livres = new ArrayList<>();
 }
