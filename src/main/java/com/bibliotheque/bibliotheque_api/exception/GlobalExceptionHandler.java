@@ -33,4 +33,11 @@ public class GlobalExceptionHandler {
                 .body(Map.of("erreur", ex.getMessage()));
     }
 
+    @ExceptionHandler(IdentifiantsInvalidesException.class)
+    public ResponseEntity<Map<String, String>> handleUnauthorized(IdentifiantsInvalidesException ex) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("erreur", ex.getMessage()));
+    }
+
 }
