@@ -1,8 +1,11 @@
 package com.bibliotheque.bibliotheque_api.service;
 
+import com.bibliotheque.bibliotheque_api.dto.request.RegisterRequest;
 import com.bibliotheque.bibliotheque_api.entity.Emprunt;
 import com.bibliotheque.bibliotheque_api.entity.Membre;
+import com.bibliotheque.bibliotheque_api.enums.Role;
 import com.bibliotheque.bibliotheque_api.enums.StatutEmprunt;
+import com.bibliotheque.bibliotheque_api.exception.EmailDejaUtiliseException;
 import com.bibliotheque.bibliotheque_api.exception.MembrePossedeEmpruntsException;
 import com.bibliotheque.bibliotheque_api.exception.RessourceNotFoundException;
 import com.bibliotheque.bibliotheque_api.repository.EmpruntRepository;
@@ -33,9 +36,15 @@ public class MembreService {
         return membreRepository.findById(id).orElseThrow(() -> new RessourceNotFoundException("Membre", id));
     }
 
-    public Membre creerMembre(Membre membre){
-        String motDePasseHash = passwordEncoder.encode(membre.getMotDePasse());
-        membre.setMotDePasse(motDePasseHash);
+    public Membre creerMembre(RegisterRequest request){
+        if (membreRepository.findByEmail(request.email()).isPresent()){
+            throw new EmailDejaUtiliseException("Un compte existe déjà avec cet email");
+        }
+        Membre membre = new Membre();
+        membre.setNom(request.nom());
+        membre.setEmail(request.email());
+        membre.setMotDePasse(passwordEncoder.encode(request.motDePasse()));
+        membre.setRole(Role.MEMBRE);
         return membreRepository.save(membre);
     }
 

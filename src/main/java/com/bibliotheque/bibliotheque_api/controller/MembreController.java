@@ -1,5 +1,6 @@
 package com.bibliotheque.bibliotheque_api.controller;
 
+import com.bibliotheque.bibliotheque_api.dto.request.RegisterRequest;
 import com.bibliotheque.bibliotheque_api.dto.response.MembreResponse;
 import com.bibliotheque.bibliotheque_api.entity.Membre;
 import com.bibliotheque.bibliotheque_api.mapper.MembreMapper;
@@ -34,8 +35,8 @@ public class MembreController {
     }
 
     @PostMapping
-    public MembreResponse creerMembre(@RequestBody Membre membre){
-        Membre membreCreer = membreService.creerMembre(membre);
+    public MembreResponse creerMembre(@RequestBody RegisterRequest request){
+        Membre membreCreer = membreService.creerMembre(request);
         return MembreMapper.toResponse(membreCreer);
     }
 

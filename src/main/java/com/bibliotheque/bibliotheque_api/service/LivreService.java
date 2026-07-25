@@ -5,6 +5,7 @@ import com.bibliotheque.bibliotheque_api.entity.Auteur;
 import com.bibliotheque.bibliotheque_api.entity.Emprunt;
 import com.bibliotheque.bibliotheque_api.entity.Livre;
 import com.bibliotheque.bibliotheque_api.enums.StatutEmprunt;
+import com.bibliotheque.bibliotheque_api.exception.IsbnDejaExistantException;
 import com.bibliotheque.bibliotheque_api.exception.LivreNonRenduException;
 import com.bibliotheque.bibliotheque_api.exception.RessourceNotFoundException;
 import com.bibliotheque.bibliotheque_api.repository.AuteurRepository;
@@ -36,6 +37,9 @@ public class LivreService {
     }
 
     public Livre creerLivre(LivreCreateRequest request){
+        if (livreRepository.findByIsbn(request.isbn()).isPresent()){
+            throw new IsbnDejaExistantException("Isbn déjà existant");
+        }
         Auteur auteur = auteurRepository.findById(request.auteurId()).orElseThrow(() -> new RessourceNotFoundException("Auteur", request.auteurId()));
         Livre livre = new Livre();
         livre.setTitre(request.titre());

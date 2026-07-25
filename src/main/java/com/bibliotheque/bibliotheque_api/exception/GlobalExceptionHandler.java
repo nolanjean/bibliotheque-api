@@ -23,7 +23,9 @@ public class GlobalExceptionHandler {
             EmpruntDejaRenduException.class,
             LivreNonRenduException.class,
             AuteurPossedeLivresException.class,
-            MembrePossedeEmpruntsException.class
+            MembrePossedeEmpruntsException.class,
+            EmailDejaUtiliseException.class,
+            IsbnDejaExistantException.class
     })
     public ResponseEntity<Map<String, String>> handleConflict(RuntimeException ex) {
         return ResponseEntity
