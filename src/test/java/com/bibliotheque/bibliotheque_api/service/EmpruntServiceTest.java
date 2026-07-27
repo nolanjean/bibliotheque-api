@@ -4,6 +4,7 @@ import com.bibliotheque.bibliotheque_api.entity.Emprunt;
 import com.bibliotheque.bibliotheque_api.entity.Livre;
 import com.bibliotheque.bibliotheque_api.entity.Membre;
 import com.bibliotheque.bibliotheque_api.exception.LimiteEmpruntException;
+import com.bibliotheque.bibliotheque_api.exception.LivreIndisponibleException;
 import com.bibliotheque.bibliotheque_api.repository.EmpruntRepository;
 import com.bibliotheque.bibliotheque_api.repository.LivreRepository;
 import com.bibliotheque.bibliotheque_api.repository.MembreRepository;
@@ -74,6 +75,28 @@ class EmpruntServiceTest {
         assertThrows(LimiteEmpruntException.class, () -> {
             empruntService.emprunterLivre(1L, 1L);
         });
+    }
+
+    @Test
+    void emprunterLivre_devraitLeverException_siLivreIndisponible(){
+
+        Membre membre = new Membre();
+        membre.setId(1L);
+
+        Livre livre = new Livre();
+        livre.setId(1L);
+        livre.setNombreExemplaires(2);
+
+        when(membreRepository.findById(1L)).thenReturn(Optional.of(membre));
+        when(empruntRepository.findByMembreIdAndStatut(1l,StatutEmprunt.EN_COURS)).thenReturn(List.of());
+        when(livreRepository.findById(1L)).thenReturn(Optional.of(livre));
+        when(empruntRepository.findByLivreIdAndStatut(1L, StatutEmprunt.EN_COURS)).thenReturn(List.of(new Emprunt(), new Emprunt()));
+
+        // Act + Assert
+        assertThrows(LivreIndisponibleException.class, () -> {
+            empruntService.emprunterLivre(1L, 1L);
+        });
+
     }
 
 
