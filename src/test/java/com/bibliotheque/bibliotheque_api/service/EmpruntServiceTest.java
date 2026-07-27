@@ -3,6 +3,7 @@ package com.bibliotheque.bibliotheque_api.service;
 import com.bibliotheque.bibliotheque_api.entity.Emprunt;
 import com.bibliotheque.bibliotheque_api.entity.Livre;
 import com.bibliotheque.bibliotheque_api.entity.Membre;
+import com.bibliotheque.bibliotheque_api.exception.EmpruntDejaRenduException;
 import com.bibliotheque.bibliotheque_api.exception.LimiteEmpruntException;
 import com.bibliotheque.bibliotheque_api.exception.LivreIndisponibleException;
 import com.bibliotheque.bibliotheque_api.repository.EmpruntRepository;
@@ -112,6 +113,19 @@ class EmpruntServiceTest {
         Emprunt resultat = empruntService.rendreLivre(1L);
         assertEquals(StatutEmprunt.RENDU, resultat.getStatut());
 
+    }
+
+    @Test
+    void rendreLivre_devraitLeverException_siDejaRendu(){
+        Emprunt emprunt = new Emprunt();
+        emprunt.setId(1L);
+        emprunt.setStatut(StatutEmprunt.RENDU);
+
+        when(empruntRepository.findById(1L)).thenReturn(Optional.of(emprunt));
+
+        assertThrows(EmpruntDejaRenduException.class, () -> {
+            empruntService.rendreLivre(1L);
+        });
     }
 
 
