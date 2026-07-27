@@ -99,6 +99,21 @@ class EmpruntServiceTest {
 
     }
 
+    @Test
+    void rendreLivre_devraitReussir_siEmpruntEnCours(){
+
+        Emprunt emprunt = new Emprunt();
+        emprunt.setId(1L);
+        emprunt.setStatut(StatutEmprunt.EN_COURS);
+
+        when(empruntRepository.findById(1L)).thenReturn(Optional.of(emprunt));
+        when(empruntRepository.save(any(Emprunt.class))).thenAnswer(i -> i.getArgument(0));
+
+        Emprunt resultat = empruntService.rendreLivre(1L);
+        assertEquals(StatutEmprunt.RENDU, resultat.getStatut());
+
+    }
+
 
 
 }
