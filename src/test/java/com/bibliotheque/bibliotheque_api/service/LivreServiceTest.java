@@ -1,8 +1,10 @@
 package com.bibliotheque.bibliotheque_api.service;
 
+import com.bibliotheque.bibliotheque_api.dto.request.LivreCreateRequest;
 import com.bibliotheque.bibliotheque_api.entity.Emprunt;
 import com.bibliotheque.bibliotheque_api.entity.Livre;
 import com.bibliotheque.bibliotheque_api.enums.StatutEmprunt;
+import com.bibliotheque.bibliotheque_api.exception.IsbnDejaExistantException;
 import com.bibliotheque.bibliotheque_api.exception.LivreNonRenduException;
 import com.bibliotheque.bibliotheque_api.repository.AuteurRepository;
 import com.bibliotheque.bibliotheque_api.repository.EmpruntRepository;
@@ -50,7 +52,21 @@ public class LivreServiceTest {
         assertThrows(LivreNonRenduException.class, () -> {
             livreService.supprimer(1L);
         });
-
-
     }
+
+    @Test
+    void creerLivre_devraitLeverException_siIsbnExistant() {
+        //Arrange
+        LivreCreateRequest request = new LivreCreateRequest("Titre test", "978-2-00-000000-1", 3, 1L);
+        Livre livreExistant = new Livre();
+        livreExistant.setIsbn("978-2-00-000000-1");
+
+        when(livreRepository.findByIsbn("978-2-00-000000-1")).thenReturn(Optional.of(livreExistant));
+
+        //Act + assert
+        assertThrows(IsbnDejaExistantException.class, () -> {
+            livreService.creerLivre(request);
+        });
+    }
+
 }
