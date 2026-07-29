@@ -92,4 +92,29 @@ public class LivreServiceTest {
 
     }
 
+    @Test
+    void mettreAJour_devraitModifierSeulementLeTitre_siSeulTitreFourni() {
+        // Arrange
+        Livre livreExistant = new Livre();
+        livreExistant.setId(1L);
+        livreExistant.setTitre("Ancien titre");
+        livreExistant.setIsbn("978-2-00-000000-1");
+        livreExistant.setNombreExemplaires(5);
+
+        Livre livreModifie = new Livre();
+        livreModifie.setTitre("Nouveau titre");
+        // isbn et nombreExemplaires volontairement non renseignés
+
+        when(livreRepository.findById(1L)).thenReturn(Optional.of(livreExistant));
+        when(livreRepository.save(any(Livre.class))).thenAnswer(i -> i.getArgument(0));
+
+        // Act
+        Livre resultat = livreService.mettreAJour(1L, livreModifie);
+
+        // Assert
+        assertEquals("Nouveau titre", resultat.getTitre());
+        assertEquals("978-2-00-000000-1", resultat.getIsbn());
+        assertEquals(5, resultat.getNombreExemplaires());
+    }
+
 }
