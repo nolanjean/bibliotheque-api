@@ -1,6 +1,7 @@
 package com.bibliotheque.bibliotheque_api.service;
 
 import com.bibliotheque.bibliotheque_api.dto.request.LivreCreateRequest;
+import com.bibliotheque.bibliotheque_api.entity.Auteur;
 import com.bibliotheque.bibliotheque_api.entity.Emprunt;
 import com.bibliotheque.bibliotheque_api.entity.Livre;
 import com.bibliotheque.bibliotheque_api.enums.StatutEmprunt;
@@ -15,7 +16,9 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -67,6 +70,26 @@ public class LivreServiceTest {
         assertThrows(IsbnDejaExistantException.class, () -> {
             livreService.creerLivre(request);
         });
+    }
+
+    @Test
+    void creerLivre_devraitReussir(){
+        //Arrange
+        LivreCreateRequest request = new LivreCreateRequest("Titre test", "978-2-00-000000-1", 3, 1L);
+        Auteur auteur = new Auteur();
+        auteur.setId(1L);
+
+        //when
+        when(livreRepository.findByIsbn("978-2-00-000000-1")).thenReturn(Optional.empty());
+        when(auteurRepository.findById(1L)).thenReturn(Optional.of(auteur));
+        when(livreRepository.save(any(Livre.class))).thenAnswer(i -> i.getArgument(0));
+
+        //Act
+        Livre resultat = livreService.creerLivre(request);
+
+        //Assert
+        assertEquals("Titre test", resultat.getTitre());
+
     }
 
 }
