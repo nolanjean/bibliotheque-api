@@ -1,5 +1,6 @@
 package com.bibliotheque.bibliotheque_api.service;
 
+import com.bibliotheque.bibliotheque_api.dto.request.AuteurCreateRequest;
 import com.bibliotheque.bibliotheque_api.entity.Auteur;
 import com.bibliotheque.bibliotheque_api.entity.Livre;
 import com.bibliotheque.bibliotheque_api.exception.AuteurPossedeLivresException;
@@ -57,6 +58,18 @@ public class AuteurServiceTest {
 
         verify(auteurRepository).delete(auteur);
 
+    }
+
+    @Test
+    void creerAuteurDevraitReussir(){
+        Auteur auteur = new Auteur();
+        auteur.setNom("John");
+
+        when(auteurRepository.save(any(Auteur.class))).thenAnswer(i -> i.getArgument(0));
+
+        Auteur resultat = auteurService.creerAuteur(auteur);
+
+        assertEquals("John", resultat.getNom());
     }
 
 }
