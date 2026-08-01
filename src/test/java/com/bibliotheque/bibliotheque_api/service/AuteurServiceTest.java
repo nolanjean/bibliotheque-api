@@ -39,4 +39,24 @@ public class AuteurServiceTest {
 
     }
 
+    @Test
+
+    void supprimerDevraitReussir(){
+
+        //Arrange
+
+        Auteur auteur = new Auteur();
+
+        auteur.setId(1L);
+
+        auteur.setLivres(List.of());
+
+        when(auteurRepository.findById(1L)).thenReturn(Optional.of(auteur));
+
+        auteurService.supprimer(1L);
+
+        verify(auteurRepository).delete(auteur);
+
+    }
+
 }
