@@ -2,6 +2,7 @@ package com.bibliotheque.bibliotheque_api.service;
 
 import com.bibliotheque.bibliotheque_api.dto.request.RegisterRequest;
 import com.bibliotheque.bibliotheque_api.entity.Membre;
+import com.bibliotheque.bibliotheque_api.enums.Role;
 import com.bibliotheque.bibliotheque_api.exception.EmailDejaUtiliseException;
 import com.bibliotheque.bibliotheque_api.repository.EmpruntRepository;
 import com.bibliotheque.bibliotheque_api.repository.MembreRepository;
@@ -11,7 +12,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -42,5 +45,21 @@ public class MembreServiceTest {
         assertThrows(EmailDejaUtiliseException.class, () -> {
             membreService.creerMembre(request);
         });
+    }
+
+    @Test
+    void creerMembre_DevraitReussir(){
+        RegisterRequest request = new RegisterRequest("Jean Dupont", "jean@email.com","motdepasse123");
+
+        when(membreRepository.findByEmail("jean@email.com")).thenReturn(Optional.empty());
+        when(passwordEncoder.encode("motdepasse123")).thenReturn("hashSimule123");
+        when(membreRepository.save(any(Membre.class))).thenAnswer(i -> i.getArgument(0));
+
+        Membre resultat = membreService.creerMembre(request);
+
+        assertEquals("jean@email.com", resultat.getEmail());
+        assertEquals("hashSimule123", resultat.getMotDePasse());
+        assertEquals(Role.MEMBRE, resultat.getRole());
+
     }
 }
