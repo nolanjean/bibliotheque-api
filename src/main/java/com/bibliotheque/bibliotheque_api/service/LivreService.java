@@ -11,6 +11,8 @@ import com.bibliotheque.bibliotheque_api.exception.RessourceNotFoundException;
 import com.bibliotheque.bibliotheque_api.repository.AuteurRepository;
 import com.bibliotheque.bibliotheque_api.repository.EmpruntRepository;
 import com.bibliotheque.bibliotheque_api.repository.LivreRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ import java.util.List;
 @Service
 public class LivreService {
 
+    private static final Logger logger = LoggerFactory.getLogger(LivreService.class);
     private final LivreRepository livreRepository;
     private final EmpruntRepository empruntRepository;
     private final AuteurRepository auteurRepository;
@@ -35,20 +38,31 @@ public class LivreService {
     }
 
     public Livre trouverParId(Long id){
-        return livreRepository.findById(id).orElseThrow(() -> new RessourceNotFoundException("Livre", id));
+        return livreRepository.findById(id).orElseThrow(() -> {
+            logger.warn("Livre introuvable, ID {}", id);
+            return new RessourceNotFoundException("Livre", id);
+        });
     }
 
     public Livre creerLivre(LivreCreateRequest request){
+        logger.info("Tentative de création d'un livre avec ISBN {}", request.isbn());
+
         if (livreRepository.findByIsbn(request.isbn()).isPresent()){
+            logger.warn("Echec création livre : ISBN {} déjà existant", request.isbn());
             throw new IsbnDejaExistantException("Isbn déjà existant");
         }
         Auteur auteur = auteurRepository.findById(request.auteurId()).orElseThrow(() -> new RessourceNotFoundException("Auteur", request.auteurId()));
+
         Livre livre = new Livre();
         livre.setTitre(request.titre());
         livre.setIsbn(request.isbn());
         livre.setNombreExemplaires(request.nombreExemplaires());
         livre.setAuteur(auteur);
-        return livreRepository.save(livre);
+
+        Livre livreSauvegarde = livreRepository.save(livre);
+        logger.info("Livre crée avec succès, ID {}", livreSauvegarde.getId());
+
+        return livreSauvegarde;
     }
 
     public Livre mettreAJour(Long id, Livre livreModifie){
@@ -67,7 +81,9 @@ public class LivreService {
             livreExistant.setAuteur(livreModifie.getAuteur());
         }
 
-        return livreRepository.save(livreExistant);
+        Livre livreMisAJour = livreRepository.save(livreExistant);
+        logger.info("Livre mis a jour, ID {}", id);
+        return livreMisAJour;
     }
 
     public void supprimer(Long id){
@@ -75,8 +91,11 @@ public class LivreService {
 
         List<Emprunt> listLivreEmprunter = empruntRepository.findByLivreIdAndStatut(id, StatutEmprunt.EN_COURS);
         if (!listLivreEmprunter.isEmpty()){
+            logger.warn("Echec livre encore non rendu : ID {}", id);
             throw new LivreNonRenduException("Livre encore non rendu");
         }
+
         livreRepository.delete(livre);
+        logger.info("Livre supprimé, ID {}", id);
     }
 }
