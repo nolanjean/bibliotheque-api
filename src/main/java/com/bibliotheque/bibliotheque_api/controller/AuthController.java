@@ -10,6 +10,7 @@ import com.bibliotheque.bibliotheque_api.mapper.MembreMapper;
 import com.bibliotheque.bibliotheque_api.repository.MembreRepository;
 import com.bibliotheque.bibliotheque_api.security.jwt.JwtService;
 import com.bibliotheque.bibliotheque_api.service.MembreService;
+import jakarta.validation.Valid;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,7 +34,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public MembreResponse register(@RequestBody RegisterRequest request) {
+    public MembreResponse register(@Valid @RequestBody RegisterRequest request) {
         Membre membre = membreService.creerMembre(request);
         return MembreMapper.toResponse(membre);
     }
