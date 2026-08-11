@@ -40,7 +40,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public Map<String, String> login(@RequestBody LoginRequest request) {
+    public Map<String, String> login(@Valid @RequestBody LoginRequest request) {
         Membre membre = membreRepository.findByEmail(request.email())
                 .orElseThrow(() -> new IdentifiantsInvalidesException("Email ou mot de passe incorrect"));
 
