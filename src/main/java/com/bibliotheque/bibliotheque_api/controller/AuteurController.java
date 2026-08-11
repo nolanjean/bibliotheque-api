@@ -6,10 +6,10 @@ import com.bibliotheque.bibliotheque_api.entity.Auteur;
 import com.bibliotheque.bibliotheque_api.mapper.AuteurMapper;
 import com.bibliotheque.bibliotheque_api.service.AuteurService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auteurs")
@@ -22,9 +22,9 @@ public class AuteurController {
     }
 
     @GetMapping
-    public List<AuteurResponse> listAuteur(){
-        List<Auteur> auteur = auteurService.listerTousLesAuteurs();
-        return auteur.stream().map(AuteurMapper::toResponse).collect(Collectors.toList());
+    public Page<AuteurResponse> listAuteur(Pageable pageable){
+        Page<Auteur> auteur = auteurService.listerTousLesAuteurs(pageable);
+        return auteur.map(AuteurMapper::toResponse);
     }
 
     @GetMapping("/{id}")

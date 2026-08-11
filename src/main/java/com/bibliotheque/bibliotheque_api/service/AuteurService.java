@@ -4,6 +4,8 @@ import com.bibliotheque.bibliotheque_api.entity.Auteur;
 import com.bibliotheque.bibliotheque_api.exception.AuteurPossedeLivresException;
 import com.bibliotheque.bibliotheque_api.exception.RessourceNotFoundException;
 import com.bibliotheque.bibliotheque_api.repository.AuteurRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,8 +19,8 @@ public class AuteurService {
         this.auteurRepository = auteurRepository;
     }
 
-    public List<Auteur> listerTousLesAuteurs(){
-        return auteurRepository.findAll();
+    public Page<Auteur> listerTousLesAuteurs(Pageable pageable){
+        return auteurRepository.findAll(pageable);
     }
 
     public Auteur trouverParId(Long id){

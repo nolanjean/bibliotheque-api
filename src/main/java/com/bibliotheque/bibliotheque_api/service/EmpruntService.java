@@ -11,6 +11,8 @@ import com.bibliotheque.bibliotheque_api.exception.RessourceNotFoundException;
 import com.bibliotheque.bibliotheque_api.repository.EmpruntRepository;
 import com.bibliotheque.bibliotheque_api.repository.LivreRepository;
 import com.bibliotheque.bibliotheque_api.repository.MembreRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -31,16 +33,16 @@ public class EmpruntService {
         this.livreRepository = livreRepository;
     }
 
-    public List<Emprunt> listerTousLesEmprunts() {
-        return empruntRepository.findAll();
+    public Page<Emprunt> listerTousLesEmprunts(Pageable pageable) {
+        return empruntRepository.findAll(pageable);
     }
 
     public Emprunt trouverParId(Long id) {
         return empruntRepository.findById(id).orElseThrow(() -> new RessourceNotFoundException("Emprunt", id));
     }
 
-    public List<Emprunt> listerEmpruntsDuMembre(Long membreId) {
-        return empruntRepository.findByMembreId(membreId);
+    public Page<Emprunt> listerEmpruntsDuMembre(Long membreId, Pageable pageable) {
+        return empruntRepository.findByMembreId(membreId, pageable);
     }
 
     public Emprunt emprunterLivre(Long membreId, Long livreId){

@@ -4,10 +4,9 @@ import com.bibliotheque.bibliotheque_api.dto.response.EmpruntResponse;
 import com.bibliotheque.bibliotheque_api.entity.Emprunt;
 import com.bibliotheque.bibliotheque_api.mapper.EmpruntMapper;
 import com.bibliotheque.bibliotheque_api.service.EmpruntService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/emprunts")
@@ -20,9 +19,9 @@ public class EmpruntController {
     }
 
     @GetMapping
-    public List<EmpruntResponse> listEmprunt(){
-        List<Emprunt> listEmprunt = empruntService.listerTousLesEmprunts();
-        return listEmprunt.stream().map(EmpruntMapper::toResponse).collect(Collectors.toList());
+    public Page<EmpruntResponse> listEmprunt(Pageable pageable){
+        Page<Emprunt> listEmprunt = empruntService.listerTousLesEmprunts(pageable);
+        return listEmprunt.map(EmpruntMapper::toResponse);
     }
 
     @GetMapping("/{id}")
@@ -32,9 +31,9 @@ public class EmpruntController {
     }
 
     @GetMapping("/membre/{membreId}")
-    public List<EmpruntResponse> listEmpruntMembre(@PathVariable Long membreId){
-        List<Emprunt> listEmpruntMembre = empruntService.listerEmpruntsDuMembre(membreId);
-        return listEmpruntMembre.stream().map(EmpruntMapper::toResponse).collect(Collectors.toList());
+    public Page<EmpruntResponse> listEmpruntMembre(@PathVariable Long membreId, Pageable pageable){
+        Page<Emprunt> listEmpruntMembre = empruntService.listerEmpruntsDuMembre(membreId, pageable);
+        return listEmpruntMembre.map(EmpruntMapper::toResponse);
     }
 
     @PostMapping
