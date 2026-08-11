@@ -5,6 +5,7 @@ import com.bibliotheque.bibliotheque_api.dto.response.AuteurResponse;
 import com.bibliotheque.bibliotheque_api.entity.Auteur;
 import com.bibliotheque.bibliotheque_api.mapper.AuteurMapper;
 import com.bibliotheque.bibliotheque_api.service.AuteurService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,7 +34,7 @@ public class AuteurController {
     }
 
     @PostMapping
-    public AuteurResponse creerAuteur(@RequestBody AuteurCreateRequest request){
+    public AuteurResponse creerAuteur(@Valid @RequestBody AuteurCreateRequest request){
         Auteur auteur = AuteurMapper.toEntity(request);
         Auteur auteurCreer = auteurService.creerAuteur(auteur);
         return AuteurMapper.toResponse(auteurCreer);
