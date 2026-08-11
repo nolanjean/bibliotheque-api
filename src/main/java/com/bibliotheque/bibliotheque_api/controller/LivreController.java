@@ -6,10 +6,9 @@ import com.bibliotheque.bibliotheque_api.entity.Livre;
 import com.bibliotheque.bibliotheque_api.mapper.LivreMapper;
 import com.bibliotheque.bibliotheque_api.service.LivreService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/livres")
@@ -22,11 +21,9 @@ public class LivreController {
     }
 
     @GetMapping
-    public List<LivreResponse> listerTousLesLivres(){
-        List<Livre> listLivres = livreService.listerTousLesLivres();
-        return listLivres.stream()
-                .map(LivreMapper::toResponse)
-                .collect(Collectors.toList());
+    public Page<LivreResponse> listerTousLesLivres(Pageable pageable){
+        Page<Livre> pageLivres = livreService.listerTousLesLivres(pageable);
+        return pageLivres.map(LivreMapper::toResponse);
     }
 
     @GetMapping("/{id}")

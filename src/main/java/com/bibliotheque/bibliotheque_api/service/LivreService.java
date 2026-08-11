@@ -11,6 +11,8 @@ import com.bibliotheque.bibliotheque_api.exception.RessourceNotFoundException;
 import com.bibliotheque.bibliotheque_api.repository.AuteurRepository;
 import com.bibliotheque.bibliotheque_api.repository.EmpruntRepository;
 import com.bibliotheque.bibliotheque_api.repository.LivreRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,8 +30,8 @@ public class LivreService {
         this.auteurRepository = auteurRepository;
     }
 
-    public List<Livre> listerTousLesLivres(){
-        return livreRepository.findAll();
+    public Page<Livre> listerTousLesLivres(Pageable pageable){
+        return livreRepository.findAll(pageable);
     }
 
     public Livre trouverParId(Long id){
