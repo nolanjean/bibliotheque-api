@@ -1,6 +1,7 @@
 package com.bibliotheque.bibliotheque_api.controller;
 
 import com.bibliotheque.bibliotheque_api.dto.request.AuteurCreateRequest;
+import com.bibliotheque.bibliotheque_api.dto.request.AuteurUpdateRequest;
 import com.bibliotheque.bibliotheque_api.dto.response.AuteurResponse;
 import com.bibliotheque.bibliotheque_api.entity.Auteur;
 import com.bibliotheque.bibliotheque_api.mapper.AuteurMapper;
@@ -41,7 +42,8 @@ public class AuteurController {
     }
 
     @PutMapping("/{id}")
-    public AuteurResponse mettreAJour(@PathVariable Long id, @RequestBody Auteur auteurModifie){
+    public AuteurResponse mettreAJour(@PathVariable Long id, @Valid @RequestBody AuteurUpdateRequest request){
+        Auteur auteurModifie = AuteurMapper.toEntity(request);
         Auteur auteur = auteurService.mettreAJour(id, auteurModifie);
         return AuteurMapper.toResponse(auteur);
     }
