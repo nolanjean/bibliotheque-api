@@ -1,6 +1,7 @@
 package com.bibliotheque.bibliotheque_api.service;
 
 import com.bibliotheque.bibliotheque_api.dto.request.LivreCreateRequest;
+import com.bibliotheque.bibliotheque_api.dto.request.LivreUpdateRequest;
 import com.bibliotheque.bibliotheque_api.entity.Auteur;
 import com.bibliotheque.bibliotheque_api.entity.Emprunt;
 import com.bibliotheque.bibliotheque_api.entity.Livre;
@@ -56,20 +57,20 @@ public class LivreService {
         return livreSauvegarde;
     }
 
-    public Livre mettreAJour(Long id, Livre livreModifie){
+    public Livre mettreAJour(Long id, LivreUpdateRequest request, Auteur auteur){
         Livre livreExistant = trouverParId(id);
 
-        if (livreModifie.getTitre() != null) {
-            livreExistant.setTitre(livreModifie.getTitre());
+        if (request.titre() != null) {
+            livreExistant.setTitre(request.titre());
         }
-        if (livreModifie.getIsbn() != null) {
-            livreExistant.setIsbn(livreModifie.getIsbn());
+        if (request.isbn() != null) {
+            livreExistant.setIsbn(request.isbn());
         }
-        if (livreModifie.getNombreExemplaires() != 0) {
-            livreExistant.setNombreExemplaires(livreModifie.getNombreExemplaires());
+        if (request.nombreExemplaires() != null) {
+            livreExistant.setNombreExemplaires(request.nombreExemplaires());
         }
-        if (livreModifie.getAuteur() != null) {
-            livreExistant.setAuteur(livreModifie.getAuteur());
+        if (auteur != null) {
+            livreExistant.setAuteur(auteur);
         }
 
         Livre livreMisAJour = livreRepository.save(livreExistant);

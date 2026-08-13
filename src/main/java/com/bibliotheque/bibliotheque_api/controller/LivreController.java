@@ -1,6 +1,7 @@
 package com.bibliotheque.bibliotheque_api.controller;
 
 import com.bibliotheque.bibliotheque_api.dto.request.LivreCreateRequest;
+import com.bibliotheque.bibliotheque_api.dto.request.LivreUpdateRequest;
 import com.bibliotheque.bibliotheque_api.dto.response.LivreResponse;
 import com.bibliotheque.bibliotheque_api.entity.Auteur;
 import com.bibliotheque.bibliotheque_api.entity.Livre;
@@ -44,8 +45,12 @@ public class LivreController {
     }
 
     @PutMapping("/{id}")
-    public LivreResponse mettreAJour(@PathVariable Long id, @RequestBody Livre livreModifie){
-        Livre livre = livreService.mettreAJour(id, livreModifie);
+    public LivreResponse mettreAJour(@PathVariable Long id, @Valid @RequestBody LivreUpdateRequest request){
+        Auteur auteur = null;
+        if (request.auteurId() != null) {
+            auteur = auteurService.trouverParId(request.auteurId());
+        }
+        Livre livre = livreService.mettreAJour(id, request, auteur);
         return LivreMapper.toResponse(livre);
     }
 

@@ -1,5 +1,6 @@
 package com.bibliotheque.bibliotheque_api.service;
 
+import com.bibliotheque.bibliotheque_api.dto.request.LivreUpdateRequest;
 import com.bibliotheque.bibliotheque_api.entity.Auteur;
 import com.bibliotheque.bibliotheque_api.entity.Emprunt;
 import com.bibliotheque.bibliotheque_api.entity.Livre;
@@ -105,20 +106,39 @@ public class LivreServiceTest {
         livreExistant.setIsbn("978-2-00-000000-1");
         livreExistant.setNombreExemplaires(5);
 
-        Livre livreModifie = new Livre();
-        livreModifie.setTitre("Nouveau titre");
-        // isbn et nombreExemplaires volontairement non renseignés
+        LivreUpdateRequest request = new LivreUpdateRequest("Nouveau titre", null, null, null);
 
         when(livreRepository.findById(1L)).thenReturn(Optional.of(livreExistant));
         when(livreRepository.save(any(Livre.class))).thenAnswer(i -> i.getArgument(0));
 
         // Act
-        Livre resultat = livreService.mettreAJour(1L, livreModifie);
+        Livre resultat = livreService.mettreAJour(1L, request, null);
 
         // Assert
         assertEquals("Nouveau titre", resultat.getTitre());
         assertEquals("978-2-00-000000-1", resultat.getIsbn());
         assertEquals(5, resultat.getNombreExemplaires());
+    }
+
+    @Test
+    void mettreAJour_devraitMettreNombreExemplairesAZero_siExplicitementFourni() {
+        // Arrange
+        Livre livreExistant = new Livre();
+        livreExistant.setId(1L);
+        livreExistant.setTitre("Titre");
+        livreExistant.setIsbn("978-2-00-000000-1");
+        livreExistant.setNombreExemplaires(5);
+
+        LivreUpdateRequest request = new LivreUpdateRequest(null, null, 0, null);
+
+        when(livreRepository.findById(1L)).thenReturn(Optional.of(livreExistant));
+        when(livreRepository.save(any(Livre.class))).thenAnswer(i -> i.getArgument(0));
+
+        // Act
+        Livre resultat = livreService.mettreAJour(1L, request, null);
+
+        // Assert
+        assertEquals(0, resultat.getNombreExemplaires());
     }
 
 }
