@@ -1,13 +1,11 @@
 package com.bibliotheque.bibliotheque_api.service;
 
-import com.bibliotheque.bibliotheque_api.dto.request.LivreCreateRequest;
 import com.bibliotheque.bibliotheque_api.entity.Auteur;
 import com.bibliotheque.bibliotheque_api.entity.Emprunt;
 import com.bibliotheque.bibliotheque_api.entity.Livre;
 import com.bibliotheque.bibliotheque_api.enums.StatutEmprunt;
 import com.bibliotheque.bibliotheque_api.exception.IsbnDejaExistantException;
 import com.bibliotheque.bibliotheque_api.exception.LivreNonRenduException;
-import com.bibliotheque.bibliotheque_api.repository.AuteurRepository;
 import com.bibliotheque.bibliotheque_api.repository.EmpruntRepository;
 import com.bibliotheque.bibliotheque_api.repository.LivreRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,15 +24,13 @@ public class LivreServiceTest {
 
     private LivreRepository livreRepository;
     private EmpruntRepository empruntRepository;
-    private AuteurRepository auteurRepository;
     private LivreService livreService;
 
     @BeforeEach
     void setUp(){
         livreRepository = mock(LivreRepository.class);
         empruntRepository = mock(EmpruntRepository.class);
-        auteurRepository = mock(AuteurRepository.class);
-        livreService = new LivreService(livreRepository,empruntRepository,auteurRepository);
+        livreService = new LivreService(livreRepository,empruntRepository);
     }
 
     @Test
@@ -60,7 +56,11 @@ public class LivreServiceTest {
     @Test
     void creerLivre_devraitLeverException_siIsbnExistant() {
         //Arrange
-        LivreCreateRequest request = new LivreCreateRequest("Titre test", "978-2-00-000000-1", 3, 1L);
+        Livre livre = new Livre();
+        livre.setTitre("Titre test");
+        livre.setIsbn("978-2-00-000000-1");
+        livre.setNombreExemplaires(3);
+
         Livre livreExistant = new Livre();
         livreExistant.setIsbn("978-2-00-000000-1");
 
@@ -68,24 +68,28 @@ public class LivreServiceTest {
 
         //Act + assert
         assertThrows(IsbnDejaExistantException.class, () -> {
-            livreService.creerLivre(request);
+            livreService.creerLivre(livre);
         });
     }
 
     @Test
     void creerLivre_devraitReussir(){
         //Arrange
-        LivreCreateRequest request = new LivreCreateRequest("Titre test", "978-2-00-000000-1", 3, 1L);
         Auteur auteur = new Auteur();
         auteur.setId(1L);
 
+        Livre livre = new Livre();
+        livre.setTitre("Titre test");
+        livre.setIsbn("978-2-00-000000-1");
+        livre.setNombreExemplaires(3);
+        livre.setAuteur(auteur);
+
         //when
         when(livreRepository.findByIsbn("978-2-00-000000-1")).thenReturn(Optional.empty());
-        when(auteurRepository.findById(1L)).thenReturn(Optional.of(auteur));
         when(livreRepository.save(any(Livre.class))).thenAnswer(i -> i.getArgument(0));
 
         //Act
-        Livre resultat = livreService.creerLivre(request);
+        Livre resultat = livreService.creerLivre(livre);
 
         //Assert
         assertEquals("Titre test", resultat.getTitre());

@@ -25,12 +25,10 @@ public class LivreService {
     private static final Logger logger = LoggerFactory.getLogger(LivreService.class);
     private final LivreRepository livreRepository;
     private final EmpruntRepository empruntRepository;
-    private final AuteurRepository auteurRepository;
 
-    public LivreService(LivreRepository livreRepository, EmpruntRepository empruntRepository, AuteurRepository auteurRepository) {
+    public LivreService(LivreRepository livreRepository, EmpruntRepository empruntRepository) {
         this.livreRepository = livreRepository;
         this.empruntRepository = empruntRepository;
-        this.auteurRepository = auteurRepository;
     }
 
     public Page<Livre> listerTousLesLivres(Pageable pageable){
@@ -44,20 +42,13 @@ public class LivreService {
         });
     }
 
-    public Livre creerLivre(LivreCreateRequest request){
-        logger.info("Tentative de création d'un livre avec ISBN {}", request.isbn());
+    public Livre creerLivre(Livre livre){
+        logger.info("Tentative de création d'un livre avec ISBN {}", livre.getIsbn());
 
-        if (livreRepository.findByIsbn(request.isbn()).isPresent()){
-            logger.warn("Echec création livre : ISBN {} déjà existant", request.isbn());
+        if (livreRepository.findByIsbn(livre.getIsbn()).isPresent()){
+            logger.warn("Echec création livre : ISBN {} déjà existant", livre.getIsbn());
             throw new IsbnDejaExistantException("Isbn déjà existant");
         }
-        Auteur auteur = auteurRepository.findById(request.auteurId()).orElseThrow(() -> new RessourceNotFoundException("Auteur", request.auteurId()));
-
-        Livre livre = new Livre();
-        livre.setTitre(request.titre());
-        livre.setIsbn(request.isbn());
-        livre.setNombreExemplaires(request.nombreExemplaires());
-        livre.setAuteur(auteur);
 
         Livre livreSauvegarde = livreRepository.save(livre);
         logger.info("Livre crée avec succès, ID {}", livreSauvegarde.getId());
