@@ -1,9 +1,9 @@
 package com.bibliotheque.bibliotheque_api.service;
 
-import com.bibliotheque.bibliotheque_api.dto.request.AuteurCreateRequest;
 import com.bibliotheque.bibliotheque_api.entity.Auteur;
 import com.bibliotheque.bibliotheque_api.entity.Livre;
 import com.bibliotheque.bibliotheque_api.exception.AuteurPossedeLivresException;
+import com.bibliotheque.bibliotheque_api.exception.RessourceNotFoundException;
 import com.bibliotheque.bibliotheque_api.repository.AuteurRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -71,5 +71,35 @@ public class AuteurServiceTest {
 
         assertEquals("John", resultat.getNom());
     }
+
+    @Test
+    void trouverParId_introuvable(){
+        when(auteurRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(RessourceNotFoundException.class, () -> {
+            auteurService.trouverParId(1L);
+        });
+    }
+
+    @Test
+    void mettreAJour_devraitModifierNom_siFourni(){
+        //Arrange
+        Auteur auteurExistant = new Auteur();
+        auteurExistant.setId(1L);
+        auteurExistant.setNom("Ancien nom");
+
+        Auteur auteurModifie = new Auteur();
+        auteurModifie.setNom("Nouveau nom");
+
+        when(auteurRepository.findById(1L)).thenReturn(Optional.of(auteurExistant));
+        when(auteurRepository.save(any(Auteur.class))).thenAnswer(i -> i.getArgument(0));
+
+        //Act
+        Auteur resultat = auteurService.mettreAJour(1L, auteurModifie);
+
+        //Assert
+        assertEquals("Nouveau nom", resultat.getNom());
+    }
+
 
 }

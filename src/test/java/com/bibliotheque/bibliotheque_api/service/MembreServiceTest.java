@@ -8,6 +8,7 @@ import com.bibliotheque.bibliotheque_api.enums.Role;
 import com.bibliotheque.bibliotheque_api.enums.StatutEmprunt;
 import com.bibliotheque.bibliotheque_api.exception.EmailDejaUtiliseException;
 import com.bibliotheque.bibliotheque_api.exception.MembrePossedeEmpruntsException;
+import com.bibliotheque.bibliotheque_api.exception.RessourceNotFoundException;
 import com.bibliotheque.bibliotheque_api.repository.EmpruntRepository;
 import com.bibliotheque.bibliotheque_api.repository.MembreRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,8 +21,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class MembreServiceTest {
 
@@ -82,5 +82,55 @@ public class MembreServiceTest {
         assertThrows(MembrePossedeEmpruntsException.class, () -> {
             membreService.supprimer(1L);
         });
+    }
+
+    @Test
+    void trouverParId_devraitLeverException_siIntrouvable(){
+        //Arrange
+        when(membreRepository.findById(1L)).thenReturn(Optional.empty());
+
+        //Act + Assert
+        assertThrows(RessourceNotFoundException.class, () -> {
+            membreService.trouverParId(1L);
+        });
+    }
+
+    @Test
+    void mettreAJour_devraitModifierNomEtEmail_siFournis(){
+        //Arrange
+        Membre membreExistant = new Membre();
+        membreExistant.setId(1L);
+        membreExistant.setNom("Ancien nom");
+        membreExistant.setEmail("ancien@email.com");
+
+        Membre membreModifie = new Membre();
+        membreModifie.setNom("Nouveau nom");
+        membreModifie.setEmail("nouveau@email.com");
+
+        when(membreRepository.findById(1L)).thenReturn(Optional.of(membreExistant));
+        when(membreRepository.save(any(Membre.class))).thenAnswer(i -> i.getArgument(0));
+
+        //Act
+        Membre resultat = membreService.mettreAJour(1L, membreModifie);
+
+        //Assert
+        assertEquals("Nouveau nom", resultat.getNom());
+        assertEquals("nouveau@email.com", resultat.getEmail());
+    }
+
+    @Test
+    void supprimerMembre_devraitReussir_siAucunEmpruntEnCours(){
+        //Arrange
+        Membre membre = new Membre();
+        membre.setId(1L);
+
+        when(membreRepository.findById(1L)).thenReturn(Optional.of(membre));
+        when(empruntRepository.findByMembreIdAndStatut(1L, StatutEmprunt.EN_COURS)).thenReturn(List.of());
+
+        //Act
+        membreService.supprimer(1L);
+
+        //Assert
+        verify(membreRepository).delete(membre);
     }
 }

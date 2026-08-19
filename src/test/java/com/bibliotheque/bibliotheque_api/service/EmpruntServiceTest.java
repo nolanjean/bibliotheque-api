@@ -6,6 +6,7 @@ import com.bibliotheque.bibliotheque_api.entity.Membre;
 import com.bibliotheque.bibliotheque_api.exception.EmpruntDejaRenduException;
 import com.bibliotheque.bibliotheque_api.exception.LimiteEmpruntException;
 import com.bibliotheque.bibliotheque_api.exception.LivreIndisponibleException;
+import com.bibliotheque.bibliotheque_api.exception.RessourceNotFoundException;
 import com.bibliotheque.bibliotheque_api.repository.EmpruntRepository;
 import com.bibliotheque.bibliotheque_api.repository.LivreRepository;
 import com.bibliotheque.bibliotheque_api.repository.MembreRepository;
@@ -123,6 +124,44 @@ class EmpruntServiceTest {
 
         assertThrows(EmpruntDejaRenduException.class, () -> {
             empruntService.rendreLivre(1L);
+        });
+    }
+
+    @Test
+    void trouverParId_devraitLeverException_siIntrouvable(){
+        //Arrange
+        when(empruntRepository.findById(1L)).thenReturn(Optional.empty());
+
+        //Act + Assert
+        assertThrows(RessourceNotFoundException.class, () -> {
+            empruntService.trouverParId(1L);
+        });
+    }
+
+    @Test
+    void emprunterLivre_devraitLeverException_siMembreIntrouvable(){
+        //Arrange
+        when(membreRepository.findById(1L)).thenReturn(Optional.empty());
+
+        //Act + Assert
+        assertThrows(RessourceNotFoundException.class, () -> {
+            empruntService.emprunterLivre(1L, 1L);
+        });
+    }
+
+    @Test
+    void emprunterLivre_devraitLeverException_siLivreIntrouvable(){
+        //Arrange
+        Membre membre = new Membre();
+        membre.setId(1L);
+
+        when(membreRepository.findById(1L)).thenReturn(Optional.of(membre));
+        when(empruntRepository.findByMembreIdAndStatut(1L, StatutEmprunt.EN_COURS)).thenReturn(List.of());
+        when(livreRepository.findById(1L)).thenReturn(Optional.empty());
+
+        //Act + Assert
+        assertThrows(RessourceNotFoundException.class, () -> {
+            empruntService.emprunterLivre(1L, 1L);
         });
     }
 

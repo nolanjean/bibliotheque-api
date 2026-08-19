@@ -7,6 +7,7 @@ import com.bibliotheque.bibliotheque_api.entity.Livre;
 import com.bibliotheque.bibliotheque_api.enums.StatutEmprunt;
 import com.bibliotheque.bibliotheque_api.exception.IsbnDejaExistantException;
 import com.bibliotheque.bibliotheque_api.exception.LivreNonRenduException;
+import com.bibliotheque.bibliotheque_api.exception.RessourceNotFoundException;
 import com.bibliotheque.bibliotheque_api.repository.EmpruntRepository;
 import com.bibliotheque.bibliotheque_api.repository.LivreRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,8 +19,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class LivreServiceTest {
 
@@ -139,6 +139,31 @@ public class LivreServiceTest {
 
         // Assert
         assertEquals(0, resultat.getNombreExemplaires());
+    }
+
+    @Test
+    void trouverParId_introuvable(){
+        when(livreRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(RessourceNotFoundException.class, () -> {
+            livreService.trouverParId(1L);
+        });
+    }
+
+    @Test
+    void supprimerLivre_devraitReussir_siAucunEmpruntEnCours(){
+        //Arrange
+        Livre livre = new Livre();
+        livre.setId(1L);
+
+        when(livreRepository.findById(1L)).thenReturn(Optional.of(livre));
+        when(empruntRepository.findByLivreIdAndStatut(1L, StatutEmprunt.EN_COURS)).thenReturn(List.of());
+
+        //Act
+        livreService.supprimer(1L);
+
+        //Assert
+        verify(livreRepository).delete(livre);
     }
 
 }
