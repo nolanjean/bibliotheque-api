@@ -1,4 +1,3 @@
-
 Readme · MD
 # 📚 Bibliothèque API
 
@@ -16,6 +15,11 @@ API REST de gestion de bibliothèque développée avec **Spring Boot**, permetta
 - ✅ Validation des données (Bean Validation)
 - ⚠️ Gestion centralisée des exceptions avec codes HTTP appropriés (`404`, `409`, `401`, `403`)
 - 🔁 Protection contre les doublons (email, ISBN) et contre l'auto-attribution de rôle à l'inscription
+- 📄 Pagination (`Pageable`/`Page<T>`) sur les listes de livres, auteurs et emprunts
+- 📝 Logs applicatifs SLF4J (INFO sur les actions métier réussies, WARN sur les cas anormaux prévus, ERROR avec stack trace sur les erreurs non prévues)
+- 📚 Documentation interactive Swagger/OpenAPI avec support de l'authentification JWT
+- ⚙️ Profils Spring `dev`/`prod` séparés (base locale vs variables d'environnement, niveaux de logs, Swagger désactivé en prod)
+- 🧪 Suite de tests unitaires (JUnit 5 + Mockito) couvrant l'ensemble des Services
 ## 🛠️ Stack technique
 
 | Techno | Usage |
@@ -28,6 +32,9 @@ API REST de gestion de bibliothèque développée avec **Spring Boot**, permetta
 | MySQL | Base de données |
 | Lombok | Réduction du boilerplate |
 | Maven | Gestion des dépendances |
+| springdoc-openapi | Documentation interactive Swagger/OpenAPI |
+| SLF4J | Logs applicatifs |
+| JUnit 5 / Mockito | Tests unitaires |
 
 ## 🏗️ Architecture
 
@@ -111,7 +118,7 @@ L'API est accessible sur `http://localhost:8080`.
 
 | Méthode | Endpoint | Description | Accès |
 |---|---|---|---|
-| GET | `/api/livres` | Liste des livres | Public |
+| GET | `/api/livres?page=0&size=10` | Liste des livres (paginée) | Public |
 | GET | `/api/livres/{id}` | Détail d'un livre | Public |
 | POST | `/api/livres` | Créer un livre | `ADMIN` |
 | PUT | `/api/livres/{id}` | Modifier un livre | `ADMIN` |
@@ -121,7 +128,7 @@ L'API est accessible sur `http://localhost:8080`.
 
 | Méthode | Endpoint | Description | Accès |
 |---|---|---|---|
-| GET | `/api/auteurs` | Liste des auteurs (avec titres de leurs livres) | Public |
+| GET | `/api/auteurs?page=0&size=10` | Liste des auteurs, paginée (avec titres de leurs livres) | Public |
 | GET | `/api/auteurs/{id}` | Détail d'un auteur | Public |
 | POST | `/api/auteurs` | Créer un auteur | `ADMIN` |
 | PUT | `/api/auteurs/{id}` | Modifier un auteur | `ADMIN` |
@@ -140,9 +147,9 @@ L'API est accessible sur `http://localhost:8080`.
 
 | Méthode | Endpoint | Description | Accès |
 |---|---|---|---|
-| GET | `/api/emprunts` | Liste de tous les emprunts | `ADMIN`, `MEMBRE` |
+| GET | `/api/emprunts?page=0&size=10` | Liste de tous les emprunts, paginée | `ADMIN`, `MEMBRE` |
 | GET | `/api/emprunts/{id}` | Détail d'un emprunt | `ADMIN`, `MEMBRE` |
-| GET | `/api/emprunts/membre/{membreId}` | Emprunts d'un membre donné | `ADMIN`, `MEMBRE` |
+| GET | `/api/emprunts/membre/{membreId}?page=0&size=10` | Emprunts d'un membre donné, paginés | `ADMIN`, `MEMBRE` |
 | POST | `/api/emprunts?membreId=&livreId=` | Emprunter un livre | `ADMIN`, `MEMBRE` |
 | PUT | `/api/emprunts/{id}/rendre` | Rendre un livre | `ADMIN`, `MEMBRE` |
 
@@ -164,6 +171,40 @@ curl -X POST http://localhost:8080/api/auth/login \
 # 3. Utiliser le token sur une route protégée
 curl -X POST http://localhost:8080/api/emprunts?membreId=1&livreId=1 \
   -H "Authorization: Bearer <token>"
+```
+
+## 📚 Documentation interactive (Swagger)
+
+L'API expose une documentation interactive générée avec **springdoc-openapi**, accessible sur :
+
+```
+http://localhost:8080/swagger-ui.html
+```
+
+Le bouton **Authorize** permet de coller un token JWT (récupéré via `/api/auth/login`) et de tester directement les routes protégées depuis l'interface. Swagger est désactivé automatiquement en profil `prod`.
+
+## ⚙️ Profils Spring
+
+Le projet distingue deux profils, activés via `spring.profiles.active` :
+
+| Profil | Usage | Particularités |
+|---|---|---|
+| `dev` (par défaut) | Développement local | Base MySQL locale, `ddl-auto=update`, logs `DEBUG`, Swagger activé |
+| `prod` | Production | Datasource via variables d'environnement (`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`), `ddl-auto=validate` (pas de modification automatique du schéma), logs `WARN`, Swagger désactivé |
+
+## 🧪 Tests
+
+Le projet dispose d'une suite de **tests unitaires** (JUnit 5 + Mockito) sur la couche Service, isolée de toute base de données via mocks des Repositories.
+
+Chaque Service (`LivreService`, `AuteurService`, `MembreService`, `EmpruntService`) est couvert sur :
+- les cas de succès de chaque méthode métier (création, mise à jour, suppression, emprunt, retour)
+- les cas d'échec métier prévus (ISBN/email déjà existant, limite d'emprunts atteinte, livre indisponible, emprunt déjà rendu, ressource encore liée à des données actives)
+- les cas de ressource introuvable (`RessourceNotFoundException`)
+
+Lancer les tests :
+
+```bash
+mvn test
 ```
 
 ## 🎯 Objectif du projet
