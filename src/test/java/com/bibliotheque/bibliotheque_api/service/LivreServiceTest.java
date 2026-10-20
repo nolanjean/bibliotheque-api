@@ -164,6 +164,6 @@ public class LivreServiceTest {
 
         //Assert
         verify(livreRepository).delete(livre);
+        verify(empruntRepository).deleteByLivreId(1L);
     }
-
 }

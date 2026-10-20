@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -78,6 +79,7 @@ public class MembreService {
         return membreMisAJour;
     }
 
+    @Transactional
     public void supprimer(Long id){
         Membre membre = trouverParId(id);
 
@@ -86,6 +88,7 @@ public class MembreService {
             logger.warn("Membre possède encore des emprunt, ID {}", id);
             throw new MembrePossedeEmpruntsException("Livre encore emprunté");
         }
+        empruntRepository.deleteByMembreId(id);   // <-- nouvelle ligne
         membreRepository.delete(membre);
         logger.info("Membre supprimer avec succès, ID {}", id);
     }

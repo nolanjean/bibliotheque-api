@@ -12,4 +12,6 @@ public interface EmpruntRepository extends JpaRepository<Emprunt, Long> {
     List<Emprunt> findByMembreIdAndStatut(Long membreId, StatutEmprunt statut);
     List<Emprunt> findByLivreIdAndStatut(Long livreId, StatutEmprunt statut);
     Page<Emprunt> findByMembreId(Long membreId, Pageable pageable);
+    void deleteByMembreId(Long membreId);
+    void deleteByLivreId(Long livreId);
 }

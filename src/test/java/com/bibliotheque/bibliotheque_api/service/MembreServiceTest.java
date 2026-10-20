@@ -132,5 +132,6 @@ public class MembreServiceTest {
 
         //Assert
         verify(membreRepository).delete(membre);
+        verify(empruntRepository).deleteByMembreId(1L);
     }
 }
