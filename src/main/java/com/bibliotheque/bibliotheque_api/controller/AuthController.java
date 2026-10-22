@@ -13,6 +13,7 @@ import com.bibliotheque.bibliotheque_api.service.MembreService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -57,6 +58,11 @@ public class AuthController {
 
         String token = jwtService.genererToken(membre.getEmail());
         logger.info("connexion réussie pour l'email : {}", membre.getEmail());
-        return Map.of("token", token);
+        return Map.of("token", token, "role", membre.getRole().name());
+    }
+
+    @GetMapping("/me")
+    public MembreResponse me(@AuthenticationPrincipal Membre connecte) {
+        return MembreMapper.toResponse(connecte);
     }
 }
