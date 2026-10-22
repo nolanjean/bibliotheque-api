@@ -67,14 +67,17 @@ com.bibliotheque.bibliotheque_api
 - Un livre ne peut être emprunté que s'il reste des **exemplaires disponibles** (comparé aux emprunts en cours sur ce livre).
 - Un emprunt déjà `RENDU` ne peut pas être rendu une seconde fois.
 - Un livre, un auteur ou un membre ne peuvent pas être supprimés s'ils sont encore liés à des données actives (emprunts en cours, livres associés).
+- La suppression d'un membre ou d'un livre sans emprunt en cours supprime aussi son historique d'emprunts (transaction atomique `@Transactional` : tout est annulé en cas d'erreur).
+- Un `MEMBRE` ne voit que ses propres emprunts et ne peut emprunter que pour lui-même ; seul l'`ADMIN` peut emprunter au nom d'un membre et déclarer qu'un livre a été rendu.
 - Un email ou un ISBN déjà utilisé est rejeté (`409 Conflict`) plutôt que de provoquer une erreur SQL brute.
-- Deux rôles distincts : `ADMIN` (gestion des livres/auteurs) et `MEMBRE` (emprunts, consultation). Le rôle est toujours forcé à `MEMBRE` à l'inscription, impossible à modifier par le client.
+- Deux rôles distincts : `ADMIN` (gestion complète : livres, auteurs, membres, emprunts, déclaration des retours) et `MEMBRE` (consultation du catalogue, ses propres emprunts, emprunter pour lui-même). Le rôle est toujours forcé à `MEMBRE` à l'inscription, impossible à modifier par le client.
 ## 🔐 Sécurité
 
 - Mots de passe hashés avec **BCrypt**, jamais stockés ni renvoyés en clair.
 - Authentification par **JWT** : un token est généré à la connexion (`/api/auth/login`) et doit être transmis dans l'en-tête `Authorization: Bearer <token>` pour accéder aux routes protégées.
 - Un filtre (`JwtAuthFilter`) valide le token à chaque requête et recharge les permissions de l'utilisateur depuis la base en temps réel (un changement de rôle est pris en compte immédiatement, sans reconnexion).
 - Autorisations par rôle appliquées au niveau de `SecurityConfig` (`hasRole`, `hasAnyRole`).
+- Contrôle d'accès sur les données : le membre est identifié par son token (`@AuthenticationPrincipal`) et jamais par un paramètre client, ce qui empêche un `MEMBRE` d'agir au nom d'un autre (`403 Forbidden` via un handler `AccessDeniedException` dédié).
 - Limite connue : pas de mécanisme de révocation de token (blacklist) — un token reste valide jusqu'à son expiration (10h) même si le compte est modifié entre-temps.
 ## 🚀 Installation et lancement
 
@@ -138,20 +141,22 @@ L'API est accessible sur `http://localhost:8080`.
 
 | Méthode | Endpoint | Description | Accès |
 |---|---|---|---|
-| GET | `/api/membres` | Liste des membres | Authentifié |
-| GET | `/api/membres/{id}` | Détail d'un membre | Authentifié |
-| PUT | `/api/membres/{id}` | Modifier un membre | Authentifié |
-| DELETE | `/api/membres/{id}` | Supprimer un membre (bloqué s'il a des emprunts en cours) | Authentifié |
+| GET | `/api/membres` | Liste des membres | `ADMIN` |
+| GET | `/api/membres/{id}` | Détail d'un membre | `ADMIN` |
+| PUT | `/api/membres/{id}` | Modifier un membre | `ADMIN` |
+| DELETE | `/api/membres/{id}` | Supprimer un membre (bloqué s'il a des emprunts en cours, son historique est supprimé avec lui) | `ADMIN` |
 
 ### Emprunts
 
 | Méthode | Endpoint | Description | Accès |
 |---|---|---|---|
-| GET | `/api/emprunts?page=0&size=10` | Liste de tous les emprunts, paginée | `ADMIN`, `MEMBRE` |
-| GET | `/api/emprunts/{id}` | Détail d'un emprunt | `ADMIN`, `MEMBRE` |
-| GET | `/api/emprunts/membre/{membreId}?page=0&size=10` | Emprunts d'un membre donné, paginés | `ADMIN`, `MEMBRE` |
-| POST | `/api/emprunts?membreId=&livreId=` | Emprunter un livre | `ADMIN`, `MEMBRE` |
-| PUT | `/api/emprunts/{id}/rendre` | Rendre un livre | `ADMIN`, `MEMBRE` |
+| GET | `/api/emprunts/mes-emprunts?page=0&size=10` | Emprunts du membre connecté, paginés | `ADMIN`, `MEMBRE` |
+| GET | `/api/emprunts?page=0&size=10` | Liste de tous les emprunts, paginée | `ADMIN` |
+| GET | `/api/emprunts/{id}` | Détail d'un emprunt | `ADMIN` |
+| GET | `/api/emprunts/membre/{membreId}?page=0&size=10` | Emprunts d'un membre donné, paginés | `ADMIN` |
+| POST | `/api/emprunts?livreId=` | Emprunter un livre pour soi-même (le membre est lu depuis le token) | `ADMIN`, `MEMBRE` |
+| POST | `/api/emprunts?livreId=&membreId=` | Emprunter un livre au nom d'un membre (`membreId` refusé en `403` pour un `MEMBRE`) | `ADMIN` |
+| PUT | `/api/emprunts/{id}/rendre` | Déclarer le retour d'un livre | `ADMIN` |
 
 ## 🧪 Tester l'API
 
@@ -169,7 +174,7 @@ curl -X POST http://localhost:8080/api/auth/login \
   -d '{"email":"jean@email.com","motDePasse":"motdepasse123"}'
  
 # 3. Utiliser le token sur une route protégée
-curl -X POST http://localhost:8080/api/emprunts?membreId=1&livreId=1 \
+curl -X POST "http://localhost:8080/api/emprunts?livreId=1" \
   -H "Authorization: Bearer <token>"
 ```
 
