@@ -7,6 +7,10 @@ import com.bibliotheque.bibliotheque_api.service.EmpruntService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
+import com.bibliotheque.bibliotheque_api.entity.Membre;
+import com.bibliotheque.bibliotheque_api.enums.Role;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 @RestController
 @RequestMapping("/api/emprunts")
@@ -36,9 +40,26 @@ public class EmpruntController {
         return listEmpruntMembre.map(EmpruntMapper::toResponse);
     }
 
+    @GetMapping("/mes-emprunts")
+    public Page<EmpruntResponse> mesEmprunts(@AuthenticationPrincipal Membre connecte, Pageable pageable){
+        Page<Emprunt> emprunts = empruntService.listerEmpruntsDuMembre(connecte.getId(), pageable);
+        return emprunts.map(EmpruntMapper::toResponse);
+    }
+
     @PostMapping
-    public EmpruntResponse emprunterLivre(@RequestParam Long membreId, @RequestParam Long livreId){
-        Emprunt emprunt = empruntService.emprunterLivre(membreId, livreId);
+    public EmpruntResponse emprunterLivre(@RequestParam(required = false) Long membreId,
+                                          @RequestParam Long livreId,
+                                          @AuthenticationPrincipal Membre connecte){
+        Long idCible = connecte.getId();
+
+        if (membreId != null && !membreId.equals(connecte.getId())) {
+            if (connecte.getRole() != Role.ADMIN) {
+                throw new AccessDeniedException("Un membre ne peut emprunter que pour lui-même");
+            }
+            idCible = membreId;
+        }
+
+        Emprunt emprunt = empruntService.emprunterLivre(idCible, livreId);
         return EmpruntMapper.toResponse(emprunt);
     }
 
