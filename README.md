@@ -76,6 +76,7 @@ com.bibliotheque.bibliotheque_api
 - Mots de passe hashés avec **BCrypt**, jamais stockés ni renvoyés en clair.
 - Authentification par **JWT** : un token est généré à la connexion (`/api/auth/login`) et doit être transmis dans l'en-tête `Authorization: Bearer <token>` pour accéder aux routes protégées.
 - Un filtre (`JwtAuthFilter`) valide le token à chaque requête et recharge les permissions de l'utilisateur depuis la base en temps réel (un changement de rôle est pris en compte immédiatement, sans reconnexion).
+- Le token ne contient que l'email (`sub`), la date de création et l'expiration (10h) : le rôle n'y figure pas, il est rechargé depuis la base à chaque requête. Le front le récupère via la réponse du login ou `GET /api/auth/me`.
 - Autorisations par rôle appliquées au niveau de `SecurityConfig` (`hasRole`, `hasAnyRole`).
 - Contrôle d'accès sur les données : le membre est identifié par son token (`@AuthenticationPrincipal`) et jamais par un paramètre client, ce qui empêche un `MEMBRE` d'agir au nom d'un autre (`403 Forbidden` via un handler `AccessDeniedException` dédié).
 - Limite connue : pas de mécanisme de révocation de token (blacklist) — un token reste valide jusqu'à son expiration (10h) même si le compte est modifié entre-temps.
@@ -115,7 +116,8 @@ L'API est accessible sur `http://localhost:8080`.
 | Méthode | Endpoint | Description | Accès |
 |---|---|---|---|
 | POST | `/api/auth/register` | Inscription d'un membre (rôle forcé à `MEMBRE`) | Public |
-| POST | `/api/auth/login` | Connexion, retourne un token JWT | Public |
+| POST | `/api/auth/login` | Connexion, retourne le token JWT et le rôle (`{"token", "role"}`) | Public |
+| GET | `/api/auth/me` | Membre connecté (id, nom, email, rôle), utile au front pour retrouver le rôle après un rechargement | Authentifié |
 
 ### Livres
 
