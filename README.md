@@ -15,7 +15,7 @@ API REST de gestion de bibliothèque développée avec **Spring Boot**, permetta
 - ✅ Validation des données (Bean Validation)
 - ⚠️ Gestion centralisée des exceptions avec codes HTTP appropriés (`404`, `409`, `401`, `403`)
 - 🔁 Protection contre les doublons (email, ISBN) et contre l'auto-attribution de rôle à l'inscription
-- 📄 Pagination (`Pageable`/`Page<T>`) sur les listes de livres, auteurs et emprunts
+- 📄 Pagination (`Pageable`/`Page<T>`) sur les listes de livres, auteurs et emprunts, avec une structure JSON stable (`PagedModel`)
 - 📝 Logs applicatifs SLF4J (INFO sur les actions métier réussies, WARN sur les cas anormaux prévus, ERROR avec stack trace sur les erreurs non prévues)
 - 📚 Documentation interactive Swagger/OpenAPI avec support de l'authentification JWT
 - ⚙️ Profils Spring `dev`/`prod` séparés (base locale vs variables d'environnement, niveaux de logs, Swagger désactivé en prod)
@@ -159,6 +159,24 @@ L'API est accessible sur `http://localhost:8080`.
 | POST | `/api/emprunts?livreId=` | Emprunter un livre pour soi-même (le membre est lu depuis le token) | `ADMIN`, `MEMBRE` |
 | POST | `/api/emprunts?livreId=&membreId=` | Emprunter un livre au nom d'un membre (`membreId` refusé en `403` pour un `MEMBRE`) | `ADMIN` |
 | PUT | `/api/emprunts/{id}/rendre` | Déclarer le retour d'un livre | `ADMIN` |
+
+### Format des listes paginées
+
+Les endpoints paginés renvoient les éléments dans `content` et les informations de pagination dans l'objet `page` :
+
+```json
+{
+  "content": [ { "id": 1, "titre": "..." } ],
+  "page": {
+    "size": 10,
+    "number": 0,
+    "totalElements": 42,
+    "totalPages": 5
+  }
+}
+```
+
+La structure est stabilisée via `@EnableSpringDataWebSupport(pageSerializationMode = VIA_DTO)`, plutôt que de sérialiser directement les `PageImpl` (format non garanti entre les versions de Spring Data).
 
 ## 🧪 Tester l'API
 
