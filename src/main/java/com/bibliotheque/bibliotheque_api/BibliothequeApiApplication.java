@@ -2,8 +2,12 @@ package com.bibliotheque.bibliotheque_api;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.data.web.config.EnableSpringDataWebSupport;
+import org.springframework.data.web.config.EnableSpringDataWebSupport.PageSerializationMode;
+
 
 @SpringBootApplication
+@EnableSpringDataWebSupport(pageSerializationMode = PageSerializationMode.VIA_DTO)
 public class BibliothequeApiApplication {
 
 	public static void main(String[] args) {
