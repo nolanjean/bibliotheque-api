@@ -4,19 +4,25 @@ import com.bibliotheque.bibliotheque_api.entity.Auteur;
 import com.bibliotheque.bibliotheque_api.exception.AuteurPossedeLivresException;
 import com.bibliotheque.bibliotheque_api.exception.RessourceNotFoundException;
 import com.bibliotheque.bibliotheque_api.repository.AuteurRepository;
+import com.bibliotheque.bibliotheque_api.specification.AuteurSpecs;
+import com.bibliotheque.bibliotheque_api.util.TriUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class AuteurService {
 
     private static final Logger logger = LoggerFactory.getLogger(AuteurService.class);
     private final AuteurRepository auteurRepository;
+    private static final Set<String> TRIS_AUTORISES = Set.of("id", "nom");
+
 
     public AuteurService(AuteurRepository auteurRepository) {
         this.auteurRepository = auteurRepository;
@@ -64,5 +70,10 @@ public class AuteurService {
 
         auteurRepository.delete(auteur);
         logger.info("Auteur supprimé, ID {}",id);
+    }
+
+    public Page<Auteur> rechercher(String q, Pageable pageable) {
+        Specification<Auteur> spec = Specification.where(AuteurSpecs.nomContient(q));
+        return auteurRepository.findAll(spec, TriUtils.securiser(pageable, TRIS_AUTORISES));
     }
 }

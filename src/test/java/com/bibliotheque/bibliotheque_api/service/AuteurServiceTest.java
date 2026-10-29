@@ -7,12 +7,14 @@ import com.bibliotheque.bibliotheque_api.exception.RessourceNotFoundException;
 import com.bibliotheque.bibliotheque_api.repository.AuteurRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class AuteurServiceTest {
@@ -99,6 +101,33 @@ public class AuteurServiceTest {
 
         //Assert
         assertEquals("Nouveau nom", resultat.getNom());
+    }
+
+    @Test
+    void rechercher_devraitRetournerLaPageDuRepository() {
+        Auteur auteur = new Auteur();
+        auteur.setId(1L);
+        auteur.setNom("Hugo");
+        Page<Auteur> page = new PageImpl<>(List.of(auteur));
+
+        when(auteurRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+
+        Page<Auteur> resultat = auteurService.rechercher("hug", PageRequest.of(0, 10));
+
+        assertEquals(1, resultat.getTotalElements());
+        assertEquals("Hugo", resultat.getContent().get(0).getNom());
+    }
+
+    @Test
+    void rechercher_devraitIgnorerUnTriNonAutorise() {
+        when(auteurRepository.findAll(any(Specification.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
+        ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+
+        auteurService.rechercher(null, PageRequest.of(0, 10, Sort.by("string")));
+
+        verify(auteurRepository).findAll(any(Specification.class), captor.capture());
+        assertTrue(captor.getValue().getSort().isUnsorted());
     }
 
 

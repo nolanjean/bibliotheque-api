@@ -11,6 +11,7 @@ import com.bibliotheque.bibliotheque_api.exception.RessourceNotFoundException;
 import com.bibliotheque.bibliotheque_api.repository.EmpruntRepository;
 import com.bibliotheque.bibliotheque_api.repository.LivreRepository;
 import com.bibliotheque.bibliotheque_api.repository.MembreRepository;
+import com.bibliotheque.bibliotheque_api.util.TriUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class EmpruntService {
@@ -27,6 +29,7 @@ public class EmpruntService {
     private final EmpruntRepository empruntRepository;
     private final MembreRepository membreRepository;
     private final LivreRepository livreRepository;
+    private static final Set<String> TRIS_AUTORISES = Set.of("id", "dateEmprunt", "dateRetourPrevue", "statut");
 
     public EmpruntService(EmpruntRepository empruntRepository,
                           MembreRepository membreRepository,
@@ -37,7 +40,7 @@ public class EmpruntService {
     }
 
     public Page<Emprunt> listerTousLesEmprunts(Pageable pageable) {
-        return empruntRepository.findAll(pageable);
+        return empruntRepository.findAll(TriUtils.securiser(pageable, TRIS_AUTORISES));
     }
 
     public Emprunt trouverParId(Long id) {
@@ -48,7 +51,7 @@ public class EmpruntService {
     }
 
     public Page<Emprunt> listerEmpruntsDuMembre(Long membreId, Pageable pageable) {
-        return empruntRepository.findByMembreId(membreId, pageable);
+        return empruntRepository.findByMembreId(membreId, TriUtils.securiser(pageable, TRIS_AUTORISES));
     }
 
     public Emprunt emprunterLivre(Long membreId, Long livreId) {
@@ -63,8 +66,8 @@ public class EmpruntService {
             throw new LimiteEmpruntException("Le membre a atteint la limite de 3 emprunts");
         }
         Livre livre = livreRepository.findById(livreId).orElseThrow(() -> {
-                logger.warn("Livre introuvable, ID {}", livreId);
-                return new RessourceNotFoundException("Livre", livreId);
+            logger.warn("Livre introuvable, ID {}", livreId);
+            return new RessourceNotFoundException("Livre", livreId);
         });
         List<Emprunt> empruntLivreEnCours = empruntRepository.findByLivreIdAndStatut(livreId, StatutEmprunt.EN_COURS);
         if (empruntLivreEnCours.size() >= livre.getNombreExemplaires() ){

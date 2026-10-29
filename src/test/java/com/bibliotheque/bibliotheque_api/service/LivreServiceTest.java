@@ -12,12 +12,14 @@ import com.bibliotheque.bibliotheque_api.repository.EmpruntRepository;
 import com.bibliotheque.bibliotheque_api.repository.LivreRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -165,5 +167,53 @@ public class LivreServiceTest {
         //Assert
         verify(livreRepository).delete(livre);
         verify(empruntRepository).deleteByLivreId(1L);
+    }
+
+    @Test
+    void rechercher_devraitRetournerLaPageDuRepository() {
+        // Arrange
+        Livre livre = new Livre();
+        livre.setId(1L);
+        livre.setTitre("Titre test");
+        Page<Livre> page = new PageImpl<>(List.of(livre));
+
+        when(livreRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+
+        // Act
+        Page<Livre> resultat = livreService.rechercher("titre", null, PageRequest.of(0, 10));
+
+        // Assert
+        assertEquals(1, resultat.getTotalElements());
+        assertEquals("Titre test", resultat.getContent().get(0).getTitre());
+    }
+
+    @Test
+    void rechercher_devraitIgnorerUnTriNonAutorise() {
+        // Arrange
+        when(livreRepository.findAll(any(Specification.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
+        ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+
+        // Act
+        livreService.rechercher(null, null, PageRequest.of(0, 10, Sort.by("string")));
+
+        // Assert
+        verify(livreRepository).findAll(any(Specification.class), captor.capture());
+        assertTrue(captor.getValue().getSort().isUnsorted());
+    }
+
+    @Test
+    void rechercher_devraitConserverUnTriAutorise() {
+        // Arrange
+        when(livreRepository.findAll(any(Specification.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
+        ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+
+        // Act
+        livreService.rechercher(null, null, PageRequest.of(0, 10, Sort.by("titre")));
+
+        // Assert
+        verify(livreRepository).findAll(any(Specification.class), captor.capture());
+        assertNotNull(captor.getValue().getSort().getOrderFor("titre"));
     }
 }

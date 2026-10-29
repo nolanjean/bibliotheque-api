@@ -14,6 +14,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.bibliotheque.bibliotheque_api.enums.StatutEmprunt;
+import org.mockito.ArgumentCaptor;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
 import java.util.List;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
@@ -163,6 +169,17 @@ class EmpruntServiceTest {
         assertThrows(RessourceNotFoundException.class, () -> {
             empruntService.emprunterLivre(1L, 1L);
         });
+    }
+
+    @Test
+    void listerTousLesEmprunts_devraitIgnorerUnTriNonAutorise() {
+        when(empruntRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of()));
+        ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+
+        empruntService.listerTousLesEmprunts(PageRequest.of(0, 10, Sort.by("membre.motDePasse")));
+
+        verify(empruntRepository).findAll(captor.capture());
+        assertTrue(captor.getValue().getSort().isUnsorted());
     }
 
 
