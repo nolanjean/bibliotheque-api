@@ -89,6 +89,7 @@ com.bibliotheque.bibliotheque_api
 - Le tri est limité à une liste blanche de champs par ressource : un tri sur un champ inconnu ou sensible (par exemple le mot de passe) est ignoré.
 - La taille des pages est plafonnée à 100 éléments pour éviter de charger une table entière en une requête.
 - **CORS** : seules les origines listées dans la propriété `app.cors.allowed-origins` peuvent appeler l'API depuis un navigateur. En production, elle vient de la variable d'environnement `CORS_ALLOWED_ORIGINS`, sans valeur par défaut : l'application refuse de démarrer si elle est absente, ce qui évite de laisser l'origine de développement ouverte par oubli.
+- **Clé de signature JWT** : lue depuis la propriété `app.jwt.secret` (variable `JWT_SECRET` en production, sans valeur par défaut). Elle n'est jamais écrite dans le code, et un token reste valide après un redémarrage de l'API.
 - Limites connues : pas de mécanisme de révocation de token (blacklist) — un token reste valide jusqu'à son expiration (10h) même si le compte est modifié entre-temps ; pas de limitation du nombre de tentatives de connexion.
 
 ## 🚀 Installation et lancement
@@ -113,16 +114,19 @@ En développement (profil `dev`, par défaut), une seule variable est nécessair
 export DB_PASSWORD=votre_mot_de_passe_mysql
 ```
 
-En production (profil `prod`), quatre variables sont obligatoires, et l'application refuse de démarrer si l'une d'elles manque :
+En production (profil `prod`), cinq variables sont obligatoires, et l'application refuse de démarrer si l'une d'elles manque :
 
 ```bash
 export DB_URL=jdbc:mysql://hote:3306/bibliotheque_db
 export DB_USERNAME=utilisateur_mysql
 export DB_PASSWORD=votre_mot_de_passe_mysql
 export CORS_ALLOWED_ORIGINS=https://votre-front.com
+export JWT_SECRET=$(openssl rand -base64 32)
 ```
 
 `CORS_ALLOWED_ORIGINS` contient l'origine du front déployé. Pour plusieurs origines, sépare-les par une virgule, sans espace (`https://a.com,https://www.a.com`).
+
+`JWT_SECRET` est la clé de signature des tokens (32 octets minimum, encodée en base64). Génère-la une seule fois, garde-la secrète et ne la commite jamais : si elle change, tous les tokens existants deviennent invalides.
 
 ### Lancer le projet
 
@@ -292,7 +296,7 @@ Le projet distingue deux profils, activés via `spring.profiles.active` :
 | Profil | Usage | Particularités |
 |---|---|---|
 | `dev` (par défaut) | Développement local | Base MySQL locale, `ddl-auto=update`, logs `DEBUG`, Swagger activé, origine CORS `http://localhost:4200` |
-| `prod` | Production | Datasource et origine CORS via variables d'environnement (`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `CORS_ALLOWED_ORIGINS`), `ddl-auto=validate` (pas de modification automatique du schéma), logs `WARN`, Swagger désactivé |
+| `prod` | Production | Datasource, origine CORS et clé JWT via variables d'environnement (`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `CORS_ALLOWED_ORIGINS`, `JWT_SECRET`), `ddl-auto=validate` (pas de modification automatique du schéma), logs `WARN`, Swagger désactivé |
 
 ## 🧪 Tests
 
