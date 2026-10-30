@@ -1,7 +1,9 @@
 package com.bibliotheque.bibliotheque_api.security.jwt;
 
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -10,7 +12,7 @@ import java.util.Date;
 @Service
 public class JwtService {
 
-    private final SecretKey secretKey = Keys.secretKeyFor(io.jsonwebtoken.SignatureAlgorithm.HS256);
+    private final SecretKey secretKey;
     private final long dureeValiditeMs = 1000 * 60 * 60 * 10; // 10 heures
 
     public String genererToken(String email) {
@@ -41,5 +43,9 @@ public class JwtService {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public JwtService(@Value("${app.jwt.secret}") String secret) {
+        this.secretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
     }
 }
