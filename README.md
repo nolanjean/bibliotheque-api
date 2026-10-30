@@ -315,6 +315,28 @@ Lancer les tests :
 mvn test
 ```
 
+## 🔭 Pistes d'amélioration
+
+**Sécurité**
+- Limiter le nombre de tentatives de connexion sur `/api/auth/login` (protection contre le brute force).
+- Mécanisme de révocation des tokens JWT, ou tokens courts avec un refresh token (un token reste valide 10 h même si le compte est modifié).
+- Ne plus journaliser l'email saisi lors d'un échec de connexion (donnée personnelle, et risque d'injection de texte dans les logs).
+- Passer `allowCredentials` à `false` dans la configuration CORS : le JWT circule dans l'en-tête `Authorization`, pas dans un cookie.
+
+**Qualité et tests**
+- Tests d'intégration des controllers avec `MockMvc` en complément des tests unitaires sur les services : rôles et codes `401`/`403`, format d'erreur, tri, pagination.
+- Intégration continue (GitHub Actions) qui lance `mvn test` à chaque push, avec une base H2 en mémoire pour un test de démarrage de l'application.
+
+**API**
+- Filtre « livres disponibles uniquement » (calculé à partir des emprunts en cours).
+- Rejeter un tri sur un champ non autorisé par un `400` explicite, au lieu de l'ignorer silencieusement.
+- Rendre `nombreExemplaires` obligatoire (`Integer` avec `@NotNull`) : un champ oublié donne aujourd'hui `0` sans erreur.
+- Exemples d'erreur propres à chaque réponse dans Swagger (seul `AuthController` en a pour l'instant).
+
+**Déploiement**
+- Migrations de schéma versionnées avec Flyway, à la place de `ddl-auto=update` en développement et `validate` en production.
+- Dockerisation (`Dockerfile` et `docker-compose` avec MySQL) pour lancer le projet en une commande.
+
 ## 🎯 Objectif du projet
 
 Ce projet a été développé pour consolider mes compétences en développement backend Java / Spring Boot : gestion des relations JPA, architecture en couches (Controller / Service / Repository / DTO / Mapper), sécurisation d'une API avec Spring Security et JWT, gestion centralisée des erreurs, et bonnes pratiques de développement assisté par IA (revue critique du code généré, compréhension systématique avant application).
