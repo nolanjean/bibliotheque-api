@@ -96,7 +96,7 @@ com.bibliotheque.bibliotheque_api
 
 ### Prérequis
 
-- Java 21+
+- Java 26
 - Maven
 - MySQL
 
@@ -133,8 +133,10 @@ export JWT_SECRET=$(openssl rand -base64 32)
 ```bash
 git clone https://github.com/nolanjean/bibliotheque-api.git
 cd bibliotheque-api
-mvn spring-boot:run
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
+
+Le profil est choisi explicitement : sans lui, l'application refuse de démarrer, ce qui évite de lancer par erreur une configuration de développement hors de ta machine. Voir « Profils Spring ».
 
 L'API est accessible sur `http://localhost:8080`.
 
@@ -291,13 +293,12 @@ Chaque endpoint est décrit (règles métier, paramètres, codes de réponse ave
 
 ## ⚙️ Profils Spring
 
-Le projet distingue deux profils, activés via `spring.profiles.active` :
+Le projet distingue deux profils, à activer avec `-Dspring-boot.run.profiles=dev` (ou la variable d'environnement `SPRING_PROFILES_ACTIVE`). Aucun n'est actif par défaut.
 
 | Profil | Usage | Particularités |
 |---|---|---|
-| `dev` (par défaut) | Développement local | Base MySQL locale, `ddl-auto=update`, logs `DEBUG`, Swagger activé, origine CORS `http://localhost:4200` |
+| `dev` (à activer explicitement) | Développement local | Base MySQL locale, `ddl-auto=update`, logs `DEBUG`, Swagger activé, origine CORS `http://localhost:4200`, clé JWT de développement |
 | `prod` | Production | Datasource, origine CORS et clé JWT via variables d'environnement (`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `CORS_ALLOWED_ORIGINS`, `JWT_SECRET`), `ddl-auto=validate` (pas de modification automatique du schéma), logs `WARN`, Swagger désactivé |
-
 ## 🧪 Tests
 
 Le projet dispose d'une suite de **tests unitaires** (JUnit 5 + Mockito) sur la couche Service, isolée de toute base de données via mocks des Repositories.
